@@ -1,8 +1,4 @@
-# Notes
-
-## 2022-11-15
-
-### Azure CLI on Debian
+# Azure CLI on Debian
 
 ```
 $ cat /etc/debian_version 
