@@ -66,13 +66,17 @@ Generate certificate:
 
 ```
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
+openssl genrsa -out apache-selfsigned.key 3072
+openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=kaas-host.192-168-1-35.sslip.io" -addext "subjectAltName=DNS:apps.kaas-host.192-168-1-35.sslip.io,DNS:*.apps.kaas-host.192-168-1-35.sslip.io,DNS:api.kaas-host.192-168-1-35.sslip.io"
+openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
+cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
 ```
 
-Create VirtualHost `/etc/apache2/sites-available/kaas-host.muthukadan.net.conf`:
+Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io.conf`:
 
 ```
 <VirtualHost *:443>
-   ServerName kaas-host.muthukadan.net.conf
+   ServerName kaas-host.192-168-1-35.sslip.io
 
    ProxyPreserveHost On
    SSLEngine on
@@ -81,15 +85,15 @@ Create VirtualHost `/etc/apache2/sites-available/kaas-host.muthukadan.net.conf`:
    SSLProxyCheckPeerCN off
    SSLProxyCheckPeerName off
    SSLProxyCheckPeerExpire off
-   ProxyPass / https://api.crc.testing:6443/
-   ProxyPassReverse / https://api.crc.testing:6443/
+   ProxyPass / https://kaas-host.192-168-1-35.sslip.io:6443/
+   ProxyPassReverse / https://kaas-host.192-168-1-35.sslip.io:6443/
 
    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
 </VirtualHost>
 ```
 
-a2ensite kaas-host.muthukadan.net.conf
+a2ensite kaas-host.192-168-1-35.sslip.io.conf
 
 ## Setting up Locally using CRC for KAAS Member server
 
