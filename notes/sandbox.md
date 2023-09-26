@@ -50,6 +50,56 @@ crc setup
 crc start
 ```
 
+Login to crc:
+
+```
+eval $(crc oc-env)
+crc console --credentials
+oc login ...
+```
+
+Generate certificate:
+
+```
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
+openssl genrsa -out apache-selfsigned.key 3072
+openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=kaas-host.192-168-1-35.sslip.io" -addext "subjectAltName=DNS:apps.kaas-host.192-168-1-35.sslip.io,DNS:*.apps.kaas-host.192-168-1-35.sslip.io,DNS:api.kaas-host.192-168-1-35.sslip.ioDNS:oauth-openshift.kaas-host.192-168-1-35.sslip.io"
+openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
+cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
+cp apache-selfsigned.key /etc/ssl/private/apache-selfsigned.key
+cp apache-selfsigned.crt /etc/ssl/private/apache-selfsigned.crt
+cp apache-selfsigned.pem /etc/ssl/private/apache-selfsigned.pem
+```
+
+```
+$ oc create secret tls sslip-secret --cert=apache-selfsigned.crt --key=apache-selfsigned.key -n openshift-config
+
+$ cat <<EOF > ingress-patch.yaml
+spec:
+  appsDomain: kaas-host.192-168-1-35.sslip.io
+  componentRoutes:
+  - hostname: console-openshift-console.kaas-host.192-168-1-35.sslip.io
+    name: console
+    namespace: openshift-console
+    servingCertKeyPairSecret:
+      name: sslip-secret
+  - hostname: oauth-openshift.kaas-host.192-168-1-35.sslip.io
+    name: oauth-openshift
+    namespace: openshift-authentication
+    servingCertKeyPairSecret:
+      name: sslip-secret
+EOF
+```
+
+```
+oc patch ingresses.config.openshift.io cluster --type=merge --patch-file=ingress-patch.yaml
+```
+
+```
+oc patch apiserver cluster --type=merge -p '{"spec":{"servingCerts": {"namedCertificates":[{"names":["api.kaas-host.192-168-1-35.sslip.io"],"servingCertificate": {"name": "sslip-secret"}}]}}}'
+oc patch -p '{"spec": {"host": "default-route-openshift-image-registry.kaas-host.192-168-1-35.sslip.io"}}' route default-route -n openshift-image-registry --type=merge
+```
+
 Install Apache for reverse proxy.
 
 ```
@@ -60,19 +110,6 @@ Enable these mods:
 
 ```
 sudo a2enmod ssl rewrite proxy proxy_http proxy_ajp
-```
-
-Generate certificate:
-
-```
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
-openssl genrsa -out apache-selfsigned.key 3072
-openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=kaas-host.192-168-1-35.sslip.io" -addext "subjectAltName=DNS:apps.kaas-host.192-168-1-35.sslip.io,DNS:*.apps.kaas-host.192-168-1-35.sslip.io,DNS:api.kaas-host.192-168-1-35.sslip.io"
-openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
-cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
-cp apache-selfsigned.key /etc/ssl/private/apache-selfsigned.key
-cp apache-selfsigned.crt /etc/ssl/private/apache-selfsigned.crt
-cp apache-selfsigned.pem /etc/ssl/private/apache-selfsigned.pem
 ```
 
 Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io.conf`:
