@@ -95,3 +95,11 @@ a2ensite kaas-host.muthukadan.net.conf
 
 Follow the similar steps as that of Host server, but change the domain names.
 
+## Domains
+
+- https://theboroer.github.io/localtunnel-www/
+- https://ngrok.com/
+- http://localhost.run/
+- https://nip.io/
+- https://sslip.io/
+- https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/tunnel-guide/remote/
