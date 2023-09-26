@@ -70,6 +70,9 @@ openssl genrsa -out apache-selfsigned.key 3072
 openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=kaas-host.192-168-1-35.sslip.io" -addext "subjectAltName=DNS:apps.kaas-host.192-168-1-35.sslip.io,DNS:*.apps.kaas-host.192-168-1-35.sslip.io,DNS:api.kaas-host.192-168-1-35.sslip.io"
 openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
 cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
+cp apache-selfsigned.key /etc/ssl/private/apache-selfsigned.key
+cp apache-selfsigned.crt /etc/ssl/private/apache-selfsigned.crt
+cp apache-selfsigned.pem /etc/ssl/private/apache-selfsigned.pem
 ```
 
 Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io.conf`:
@@ -90,10 +93,17 @@ Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io
 
    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+   SSLProxyMachineCertificateFile  /etc/ssl/private/apache-selfsigned.pem
 </VirtualHost>
 ```
 
 a2ensite kaas-host.192-168-1-35.sslip.io.conf
+
+SSH:
+
+```
+ssh -i ~/.crc/machines/crc/id_ecdsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  core@192.168.130.11
+```
 
 ## Setting up Locally using CRC for KAAS Member server
 
