@@ -130,15 +130,13 @@ Follow the similar steps as that of Host server, but change the domain names.
 
 ```
 docker login quay.io
-make clean-users
-make clean-e2e-files
-make clean-e2e-resources
-make test-e2e-local-without-migration
 export IMAGE_BUILDER=docker
 export QUAY_NAMESPACE=bmuthuka
 export HOST_REPO_PATH=/home/baiju/codeready-toolchain/host-operator
 export MEMBER_REPO_PATH=/home/baiju/codeready-toolchain/member-operator
-make test-e2e-local
-make test-e2e-without-migration
+make clean-users
+make clean-e2e-files
+make clean-e2e-resources
+make test-e2e-local-without-migration
 ```
 
