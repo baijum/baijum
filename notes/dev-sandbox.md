@@ -134,6 +134,11 @@ make clean-users
 make clean-e2e-files
 make clean-e2e-resources
 make test-e2e-local-without-migration
-IMAGE_BUILDER=docker QUAY_NAMESPACE=bmuuthuka make test-e2e-local
+export IMAGE_BUILDER=docker
+export QUAY_NAMESPACE=bmuthuka
+export HOST_REPO_PATH=/home/baiju/codeready-toolchain/host-operator
+export MEMBER_REPO_PATH=/home/baiju/codeready-toolchain/member-operator
+make test-e2e-local
+make test-e2e-without-migration
 ```
 
