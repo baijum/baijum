@@ -129,9 +129,11 @@ Follow the similar steps as that of Host server, but change the domain names.
 ## Running E2E Tests
 
 ```
+docker login quay.io
 make clean-users
 make clean-e2e-files
 make clean-e2e-resources
 make test-e2e-local-without-migration
+IMAGE_BUILDER=docker QUAY_NAMESPACE=bmuuthuka make test-e2e-local
 ```
 
