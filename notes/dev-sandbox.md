@@ -1,4 +1,4 @@
-# Sandbox
+# Developer Sandbox
 
 **WARNING:** These steps doesn't work.
 
@@ -116,3 +116,13 @@ Follow the similar steps as that of Host server, but change the domain names.
 - https://nip.io/
 - https://sslip.io/
 - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/tunnel-guide/remote/
+
+## Member Operator
+
+### Dependencies
+
+- Go 1.19
+- jq
+- gcc
+- golangci-lint
+- yamllint
