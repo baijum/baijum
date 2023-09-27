@@ -1,5 +1,7 @@
 # Sandbox
 
+**WARNING:** These steps doesn't work.
+
 ## Operators
 
 - [Host Operator](https://github.com/codeready-toolchain/host-operator)
