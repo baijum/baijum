@@ -137,6 +137,6 @@ export MEMBER_REPO_PATH=/home/baiju/codeready-toolchain/member-operator
 make clean-users
 make clean-e2e-files
 make clean-e2e-resources
-make test-e2e-local-without-migration
+make test-e2e-local-without-migration | tee e2e-local-without-migration.log
 ```
 
