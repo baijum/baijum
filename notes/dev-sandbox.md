@@ -126,3 +126,14 @@ Follow the similar steps as that of Host server, but change the domain names.
 - gcc
 - golangci-lint
 - yamllint
+- 
+
+## Running E2E Tests
+
+```
+make clean-users
+make clean-e2e-files
+make clean-e2e-resources
+make test-e2e-local-without-migration
+```
+
