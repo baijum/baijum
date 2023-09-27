@@ -9,16 +9,6 @@
 
 ## Setting up Locally using CRC for KAAS Host server
 
-### Preparation in the Physical machine
-
-```
-sudo apt-get install -y virt-manager network-manager
-```
-
-Create a VM using Debian 12 iso image (Fedora also should work).
-
-Inside the VM:
-
 ```
 sudo apt-get install -y virt-manager network-manager
 ```
@@ -60,47 +50,6 @@ crc console --credentials
 oc login ...
 ```
 
-Generate certificate:
-
-```
-openssl genrsa -out apache-selfsigned.key 3072
-openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=kaas-host.192-168-1-35.sslip.io" -addext "subjectAltName=DNS:apps.kaas-host.192-168-1-35.sslip.io,DNS:*.apps.kaas-host.192-168-1-35.sslip.io,DNS:api.kaas-host.192-168-1-35.sslip.io,DNS:oauth-openshift.kaas-host.192-168-1-35.sslip.io"
-openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
-cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
-cp apache-selfsigned.key /etc/ssl/private/apache-selfsigned.key
-cp apache-selfsigned.crt /etc/ssl/private/apache-selfsigned.crt
-cp apache-selfsigned.pem /etc/ssl/private/apache-selfsigned.pem
-```
-
-```
-$ oc create secret tls sslip-secret --cert=apache-selfsigned.crt --key=apache-selfsigned.key -n openshift-config
-
-$ cat <<EOF > ingress-patch.yaml
-spec:
-  appsDomain: kaas-host.192-168-1-35.sslip.io
-  componentRoutes:
-  - hostname: console-openshift-console.kaas-host.192-168-1-35.sslip.io
-    name: console
-    namespace: openshift-console
-    servingCertKeyPairSecret:
-      name: sslip-secret
-  - hostname: oauth-openshift.kaas-host.192-168-1-35.sslip.io
-    name: oauth-openshift
-    namespace: openshift-authentication
-    servingCertKeyPairSecret:
-      name: sslip-secret
-EOF
-```
-
-```
-oc patch ingresses.config.openshift.io cluster --type=merge --patch-file=ingress-patch.yaml
-```
-
-```
-oc patch apiserver cluster --type=merge -p '{"spec":{"servingCerts": {"namedCertificates":[{"names":["api.kaas-host.192-168-1-35.sslip.io"],"servingCertificate": {"name": "sslip-secret"}}]}}}'
-oc patch -p '{"spec": {"host": "default-route-openshift-image-registry.kaas-host.192-168-1-35.sslip.io"}}' route default-route -n openshift-image-registry --type=merge
-```
-
 Install Apache for reverse proxy.
 
 ```
@@ -113,11 +62,23 @@ Enable these mods:
 sudo a2enmod ssl rewrite proxy proxy_http proxy_ajp
 ```
 
-Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io.conf`:
+Generate certificate:
+
+```
+openssl genrsa -out apache-selfsigned.key 3072
+openssl req -new -out apache-selfsigned.csr -sha256 -key apache-selfsigned.key -subj "/CN=console.192-168-1-35.sslip.io"
+openssl x509 -req -in apache-selfsigned.csr -days 365 -signkey apache-selfsigned.key -out apache-selfsigned.crt -outform PEM
+cat apache-selfsigned.key apache-selfsigned.crt > apache-selfsigned.pem
+cp apache-selfsigned.key /etc/ssl/private/apache-selfsigned.key
+cp apache-selfsigned.crt /etc/ssl/private/apache-selfsigned.crt
+cp apache-selfsigned.pem /etc/ssl/private/apache-selfsigned.pem
+```
+
+Create VirtualHost `/etc/apache2/sites-available/console.192-168-1-35.sslip.io.conf`:
 
 ```
 <VirtualHost *:443>
-   ServerName kaas-host.192-168-1-35.sslip.io
+   ServerName console.192-168-1-35.sslip.io
 
    ProxyPreserveHost On
    SSLEngine on
@@ -126,8 +87,8 @@ Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io
    SSLProxyCheckPeerCN off
    SSLProxyCheckPeerName off
    SSLProxyCheckPeerExpire off
-   ProxyPass / https://kaas-host.192-168-1-35.sslip.io:6443/
-   ProxyPassReverse / https://kaas-host.192-168-1-35.sslip.io:6443/
+   ProxyPass / https://console-openshift-console.apps-crc.testing/
+   ProxyPassReverse / https://console-openshift-console.apps-crc.testing/
 
    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
@@ -135,7 +96,7 @@ Create VirtualHost `/etc/apache2/sites-available/kaas-host.192-168-1-35.sslip.io
 </VirtualHost>
 ```
 
-a2ensite kaas-host.192-168-1-35.sslip.io.conf
+a2ensite console.192-168-1-35.sslip.io.conf
 
 SSH:
 
