@@ -146,3 +146,9 @@ Run single test:
 /usr/local/bin/go test -timeout 30s -run ^TestRunUserSignupIntegrationTest$ -testify.m ^(TestTransformUsernameWithSpaceConflict)$ github.com/codeready-toolchain/toolchain-e2e/test/e2e
 ```
 
+## Fedora
+
+Set non-GUI runlevel
+```
+systemctl set-default multi-user.target
+```
