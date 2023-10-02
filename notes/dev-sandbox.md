@@ -125,6 +125,7 @@ Follow the similar steps as that of Host server, but change the domain names.
 - golangci-lint
 - yamllint
 - operator-sdk
+- opm
 
 ## Running E2E Tests
 
