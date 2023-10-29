@@ -1,0 +1,4 @@
+nmcli connection add type vlan ifname vlan1 vlan.parent eno1 vlan.id 15xx 802.mtu 14xx
+nmcli connection add type pppoe ifname pppoe1 pppoe.parent vlan1 username <username> password <password>
+nmcli connection modify Wired1 802-3-ethernet.cloned-mac-address xx:xx:xx:xx:xx:xx
+nmcli connection up  pppoe-pppoe1
